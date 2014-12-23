@@ -55,34 +55,36 @@ libOmxVdec-def += -DUSE_ION
 include $(CLEAR_VARS)
 LOCAL_PATH:= $(ROOT_DIR)
 
-ifneq ($(TARGET_QCOM_DISPLAY_VARIANT),)
-PLATFORM := .
-libOmxVdec-def += -DDISPLAYCAF
-else
-PLATFORM := $(TARGET_BOARD_PLATFORM)
-endif
+ifeq ($(TARGET_HAVE_OMX_HVEC),true)
+ifeq ( $( call is-board-platform-in-list, msm8960),true)
 
 libmm-vdec-inc          := bionic/libc/include
 libmm-vdec-inc          += bionic/libstdc++/include
-libmm-vdec-inc          += $(LOCAL_PATH)/inc 
-libmm-vdec-inc          += $(OMX_VIDEO_PATH)/vidc/common/inc
+libmm-vdec-inc          += $( LOCAL_PATH )/inc
+libmm-vdec-inc          += $( OMX_VIDEO_PATH ) /vidc/common/inc
 libmm-vdec-inc          += hardware/qcom/media-caf/mm-core/inc
-libmm-vdec-inc          += $(TARGET_OUT_INTERMEDIATES)/KERNEL_OBJ/usr/include
 #DRM include - Interface which loads the DRM library
-libmm-vdec-inc	        += $(OMX_VIDEO_PATH)/DivxDrmDecrypt/inc
-libmm-vdec-inc          += $(call project-path-for,qcom-display)/$(PLATFORM)/libgralloc
+libmm-vdec-inc += $( OMX_VIDEO_PATH ) /DivxDrmDecrypt/inc
+libmm-vdec-inc          += hardware/qcom/display-caf/libgralloc
 libmm-vdec-inc          += frameworks/native/include/media/openmax
 libmm-vdec-inc          += frameworks/native/include/media/hardware
-libmm-vdec-inc          += hardware/qcom/media-caf/libc2dcolorconvert
-libmm-vdec-inc          += $(call project-path-for,qcom-display)/$(PLATFORM)/libcopybit
-libmm-vdec-inc          += frameworks/av/include/media/stagefright
-libmm-vdec-inc          += $(call project-path-for,qcom-display)/$(PLATFORM)/libqservice
-libmm-vdec-inc          += frameworks/av/media/libmediaplayerservice
-libmm-vdec-inc          += frameworks/native/include/binder
-ifneq ($(TARGET_QCOM_DISPLAY_VARIANT),)
-libmm-vdec-inc          += $(call project-path-for,qcom-display)/$(PLATFORM)/libqdutils
+libmm-vdec-inc          += $( vdec-inc )
+libmm-vdec-inc          += hardware/qcom/display-caf/libqdutils
+libmm-vdec-inc      += hardware/qcom/media-caf/libc2dcolorconvert
+libmm-vdec-inc      += hardware/qcom/display-caf/libcopybit
+libmm-vdec-inc      += frameworks/av/include/media/stagefright
+libmm-vdec-inc      += $( TARGET_OUT_HEADERS )/mm-video/SwVdec
+libmm-vdec-inc      += $( TARGET_OUT_HEADERS )/qcom/display-caf/
+
+ifneq ( $(call is-platform-sdk-version-at-least, 19) ,true)
+libOmxVdec-def += -DMETADATA_FOR_DYNAMIC_MODE
+libmm-vdec-inc += hardware/qcom/media-caf/libstagefrighthw
 endif
 
+ifeq ( $( call is-platform-sdk-version-at-least, 19) ,true)
+# This feature is enabled for Android KK+
+libOmxVdec-def += -DADAPTIVE_PLAYBACK_SUPPORTED
+endif
 
 LOCAL_MODULE                    := libOmxVdec
 LOCAL_MODULE_TAGS               := optional
